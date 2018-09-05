@@ -1,30 +1,13 @@
 import React from "react";
 import { Container, Header, Body, Title, Content, Text, List, ListItem } from "native-base";
-
-//I'd be nice if I could say require('../views/docs/'+doc.name+'/index.json')... That way I could do what I have below in the comment block
-/*
-const docs = require('../views/docs/docs.json');
-docs.forEach((doc) => { //docs follows the format in ../views/docs/docs.json
-	let temp_db = require('../views/docs/'+doc.slug+'/db.json'); //again, I'd be nice if I could say require('../views/docs/'+doc.name+'/index.json')
-	doc.index = require('../views/docs/'+doc.slug+'/index.json'); //index file contains "entries": [{"name": , "path": , "type": }], path and name are very important
-	doc.index.entries.forEach((entry) => {
-		if(temp_db[entry.path]){ //coincidentally, the path of the entry is the same key of the DB json item
-			entry.html = temp_db[entry.path];
-		}else{
-			entry.html = '<h1>There is no html file with this path</h1>';
-		}
-	});
-});
-//Everything about this ^^^^ is going to turn out really slow if the number of docs increases, not sure how one would avoid that, yet.
-//The biggest issue would be entry.html, the html strings are really long and there's a lot of them, instead of loading them all like I did above, I could fetch each one individually whenever a route is selected and pass them as a parameter like I'm doing below.
-//This issue is worth investigating, which method of fetching and passing data would be best for performance and reponsitivity?
-//Some logic I'm thinking about, on sidebar I just need list of docs and the entries, so on docview I could load the html string with a small param (which is entry.path), this is how I look at it: (sidebar=[list of docs, index.json of docs (contains paths)]) => param=entry.path => (docviewHTML=require(entry.path and some strings))
-*/
+import DocItem from './DocItem.js';
 
 const docs = [
   {
     name: 'Typescript',
-    doc_data: require('../views/docs/typescript/db.json') //I know that I can dynamically create an array that contains objects that contain certain json data, but how do I deal with require?
+    entries: require('../views/docs/typescript/index.json').entries,
+    types: require('../views/docs/typescript/index.json').types,
+    indexHTML: require('../views/docs/typescript/db.json').index
   }
 ];
 
@@ -34,44 +17,31 @@ export default class SideBar extends React.Component {
 		this.state = { docs };
 	}
 
-  cleanString(path) {
-    let path_array = path.split('');
-    let i = 0;
-    while(path_array[i]) {
-      if(path_array[i] == '/'){
-        path_array.splice(0, i+1); //remove the '/' and everything before it
-        i = 0; // start from the new beginning
-      }else{
-        i++;
-      }
-    }
-    return path_array.join('');
-  }
-
-  renderList(docs) {
+  //Watch out for the keyword 'this', it could reference something else
+  renderDocs(docs) {
     let list = [];
+    let that = this;
     docs.forEach((doc) => {
+      //Here I push the title of the doc and the index file
       list.push(
-        <ListItem itemHeader first
-          button
-          onPress={() => this.props.navigation.navigate('DocView', {title: doc.name, subtitle: 'index', doc_html: (doc.doc_data)? doc.doc_data['index'] : null})}
-        >
+        <ListItem itemHeader>
           <Text>{doc.name}</Text>
         </ListItem>
       );
-      if(doc.doc_data){
-        for (let key in doc.doc_data) {
-          let clean_key = this.cleanString(key);
-          list.push(
-            <ListItem 
-              button
-              onPress={() => this.props.navigation.navigate('DocView', {title: doc.name, subtitle: clean_key, doc_html: doc.doc_data[key]})}
-            >
-              <Text>{clean_key}</Text>
-            </ListItem>
-          );
-        }
-      }
+      list.push(
+        <ListItem
+          button
+          onPress={() => that.props.navigation.navigate('DocView', {title: doc.name, subtitle: 'index', doc_html: doc.indexHTML})}
+        >
+          <Text>index</Text>
+        </ListItem>
+      );
+      //Here I push the subcomponents of the doc, such as types
+      doc.types.forEach(({ name }) => {
+        list.push(
+          <DocItem type={name} doc_items={doc.entries.filter(({ type }) => type == name)} {...that.props} />
+        );
+      });
     });
     return list;
   }
@@ -93,7 +63,7 @@ export default class SideBar extends React.Component {
 		          <Text>Home</Text>
 		        </ListItem>
             {
-              this.renderList(this.state.docs)
+              this.renderDocs(this.state.docs)
             }
           </List>
         </Content>
