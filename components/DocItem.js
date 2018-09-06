@@ -14,18 +14,11 @@ export default class SideBar extends React.Component {
     this.setState({ list: this.renderList(this.props.doc_items) });
   }
 
-  hasLink(path) {
-    for(let i = 0; i < path.length ; i++){
-      if(path[i] == '#') return true;
-    }
-    return false;
-  }
-
   //Here I render everything under the type of item
   renderList(doc_items) {
     let list = [];
     doc_items.forEach((item) => { //item is {name, path, type}
-      if(!this.hasLink(item.path)){ //for now I don't want to involve links inside the html
+      if(item.path.indexOf('#') == -1){ //for now I don't want to involve links inside the html
         list.push(
           <ListItem 
             button
