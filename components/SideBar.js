@@ -1,13 +1,20 @@
 import React from "react";
 import { Container, Header, Body, Title, Content, Text, List, ListItem } from "native-base";
-import DocItem from './DocItem.js';
+import Doc from './Doc.js';
 
+//Taken from ../views/docs/docs.json
 const docs = [
   {
-    name: 'Typescript',
-    entries: require('../views/docs/typescript/index.json').entries,
-    types: require('../views/docs/typescript/index.json').types,
-    indexHTML: require('../views/docs/typescript/db.json').index
+    "name": "TypeScript",
+    "slug": "typescript",
+    "type": "typescript",
+    "links": {
+      "home": "https://www.typescriptlang.org",
+      "code": "https://github.com/Microsoft/TypeScript"
+    },
+    "release": "2.9.0",
+    "mtime": 1528680433,
+    "db_size": 1299587
   }
 ];
 
@@ -17,33 +24,11 @@ export default class SideBar extends React.Component {
 		this.state = { docs };
 	}
 
-  //Watch out for the keyword 'this', it could reference something else
   renderDocs(docs) {
-    let list = [];
-    let that = this;
-    docs.forEach((doc) => {
-      //Here I push the title of the doc and the index file
-      list.push(
-        <ListItem itemHeader>
-          <Text>{doc.name}</Text>
-        </ListItem>
-      );
-      list.push(
-        <ListItem
-          button
-          onPress={() => that.props.navigation.navigate('DocView', {title: doc.name, subtitle: 'index', doc_html: doc.indexHTML})}
-        >
-          <Text>index</Text>
-        </ListItem>
-      );
-      //Here I push the subcomponents of the doc, such as types
-      doc.types.forEach(({ name }) => {
-        list.push(
-          <DocItem type={name} doc_items={doc.entries.filter(({ type }) => type == name)} {...that.props} />
-        );
-      });
-    });
-    return list;
+    if(docs){
+      return docs.map((doc) => <Doc {...this.props} doc_name={doc.name} />);
+    }
+    return <ListItem><Text>No docsets were found</Text></ListItem>;
   }
   
   render() {

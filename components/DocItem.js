@@ -2,17 +2,17 @@ import React from "react";
 import { View } from "react-native";
 import { Text, ListItem, Icon } from "native-base";
 
+/*
+List of props: doc_name, navigation, type, doc_items
+ */
+//const doc_data = require('../views/docs/+this.props.doc_name.lowercase()+/db.json'); //something like this
 const doc_data = require('../views/docs/typescript/db.json');
 
-export default class SideBar extends React.Component {
+export default class DocItem extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = { isOpen: false, list: [] }; //list contains a bunch of JSX
 	}
-
-  componentDidMount() {
-    this.setState({ list: this.renderList(this.props.doc_items) });
-  }
 
   //Here I render everything under the type of item
   renderList(doc_items) {
@@ -31,7 +31,11 @@ export default class SideBar extends React.Component {
     });
     return list;
   }
-  
+
+  componentDidMount() {
+    this.setState({ list: this.renderList(this.props.doc_items) });
+  }
+
   render() {
     return (
       <View>
